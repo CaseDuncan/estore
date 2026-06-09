@@ -3,20 +3,25 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { detailsOrder, payOrder } from '../actions/orderActions';
 import PaypalButton from '../components/PaypalButton';
-function OrderScreen(props) {
+
+// Destructured history and match right from props for clean dependency tracking
+function OrderScreen({ history, match }) {
+  const orderId = match.params.id;
 
   const orderPay = useSelector(state => state.orderPay);
-  const { loading: loadingPay, success: successPay, error: errorPay } = orderPay;
+  // Removed errorPay since it was never used
+  const { loading: loadingPay, success: successPay } = orderPay;
+
   const dispatch = useDispatch();
+
   useEffect(() => {
     if (successPay) {
-      props.history.push("/profile");
+      history.push("/profile");
     } else {
-      dispatch(detailsOrder(props.match.params.id));
+      dispatch(detailsOrder(orderId));
     }
-    return () => {
-    };
-  }, [successPay]);
+    return () => { };
+  }, [successPay, dispatch, history, orderId]); // Added missing dependencies
 
   const handleSuccessPayment = (paymentResult) => {
     dispatch(payOrder(order, paymentResult));
@@ -26,18 +31,15 @@ function OrderScreen(props) {
   const { loading, order, error } = orderDetails;
 
   return loading ? <div>Loading ...</div> : error ? <div>{error}</div> :
-
     <div>
       <div className="placeorder">
         <div className="placeorder-info">
           <div>
-            <h3>
-              Shipping
-          </h3>
+            <h3>Shipping</h3>
             <div>
               {order.shipping.address}, {order.shipping.city},
-          {order.shipping.postalCode}, {order.shipping.country},
-          </div>
+              {order.shipping.postalCode}, {order.shipping.country},
+            </div>
             <div>
               {order.isDelivered ? "Delivered at " + order.deliveredAt : "Not Delivered."}
             </div>
@@ -54,18 +56,12 @@ function OrderScreen(props) {
           <div>
             <ul className="cart-list-container">
               <li>
-                <h3>
-                  Shopping Cart
-          </h3>
-                <div>
-                  Price
-          </div>
+                <h3>Shopping Cart</h3>
+                <div>Price</div>
               </li>
               {
                 order.orderItems.length === 0 ?
-                  <div>
-                    Cart is empty
-          </div>
+                  <div>Cart is empty</div>
                   :
                   order.orderItems.map(item =>
                     <li key={item._id}>
@@ -77,7 +73,6 @@ function OrderScreen(props) {
                           <Link to={"/product/" + item.product}>
                             {item.name}
                           </Link>
-
                         </div>
                         <div>
                           Qty: {item.qty}
@@ -91,9 +86,8 @@ function OrderScreen(props) {
               }
             </ul>
           </div>
-
-
         </div>
+
         <div className="placeorder-action">
           <ul>
             <li className="placeorder-actions-payment">
@@ -124,14 +118,9 @@ function OrderScreen(props) {
               <div>${order.totalPrice}</div>
             </li>
           </ul>
-
-
-
         </div>
-
       </div>
     </div>
-
 }
 
 export default OrderScreen;

@@ -18,8 +18,10 @@ function ProductsScreen(props) {
   const [countInStock, setCountInStock] = useState('');
   const [description, setDescription] = useState('');
   const [uploading, setUploading] = useState(false);
+
   const productList = useSelector((state) => state.productList);
-  const { loading, products, error } = productList;
+  // Removed unused 'loading' and 'error'
+  const { products } = productList;
 
   const productSave = useSelector((state) => state.productSave);
   const {
@@ -29,11 +31,9 @@ function ProductsScreen(props) {
   } = productSave;
 
   const productDelete = useSelector((state) => state.productDelete);
-  const {
-    loading: loadingDelete,
-    success: successDelete,
-    error: errorDelete,
-  } = productDelete;
+  // Removed unused 'loadingDelete' and 'errorDelete'
+  const { success: successDelete } = productDelete;
+
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -44,19 +44,20 @@ function ProductsScreen(props) {
     return () => {
       //
     };
-  }, [successSave, successDelete]);
+  }, [successSave, successDelete, dispatch]); // Added missing 'dispatch' dependency
 
   const openModal = (product) => {
     setModalVisible(true);
-    setId(product._id);
-    setName(product.name);
-    setPrice(product.price);
-    setDescription(product.description);
-    setImage(product.image);
-    setBrand(product.brand);
-    setCategory(product.category);
-    setCountInStock(product.countInStock);
+    setId(product._id || '');
+    setName(product.name || '');
+    setPrice(product.price || '');
+    setDescription(product.description || '');
+    setImage(product.image || '');
+    setBrand(product.brand || '');
+    setCategory(product.category || '');
+    setCountInStock(product.countInStock || '');
   };
+
   const submitHandler = (e) => {
     e.preventDefault();
     dispatch(
@@ -72,9 +73,11 @@ function ProductsScreen(props) {
       })
     );
   };
+
   const deleteHandler = (product) => {
     dispatch(deleteProdcut(product._id));
   };
+
   const uploadFileHandler = (e) => {
     const file = e.target.files[0];
     const bodyFormData = new FormData();
@@ -95,6 +98,7 @@ function ProductsScreen(props) {
         setUploading(false);
       });
   };
+
   return (
     <div className="content content-margined">
       <div className="product-header">
@@ -218,7 +222,7 @@ function ProductsScreen(props) {
             </tr>
           </thead>
           <tbody>
-            {products.map((product) => (
+            {products && products.map((product) => (
               <tr key={product._id}>
                 <td>{product._id}</td>
                 <td>{product.name}</td>
