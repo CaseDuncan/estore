@@ -1,124 +1,94 @@
-import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
-import { detailsOrder, payOrder } from '../actions/orderActions';
-import PaypalButton from '../components/PaypalButton';
+import React from 'react';
+import { BrowserRouter, Route, Link } from 'react-router-dom';
+import './App.css';
+import HomeScreen from './screens/HomeScreen';
+import ProductScreen from './screens/ProductScreen';
+import CartScreen from './screens/CartScreen';
+import SigninScreen from './screens/SigninScreen';
+import { useSelector } from 'react-redux';
+import RegisterScreen from './screens/RegisterScreen';
+import ProductsScreen from './screens/ProductsScreen';
+import ShippingScreen from './screens/ShippingScreen';
+import PaymentScreen from './screens/PaymentScreen';
+import PlaceOrderScreen from './screens/PlaceOrderScreen';
+import OrderScreen from './screens/OrderScreen';
+import ProfileScreen from './screens/ProfileScreen';
+import OrdersScreen from './screens/OrdersScreen';
 
-function OrderScreen({ history, match }) {
-  const orderId = match.params.id;
+function App() {
+  const userSignin = useSelector((state) => state.userSignin);
+  const { userInfo } = userSignin;
 
-  const orderPay = useSelector(state => state.orderPay);
-  const { loading: loadingPay, success: successPay } = orderPay;
-
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    if (successPay) {
-      history.push("/profile");
-    } else {
-      dispatch(detailsOrder(orderId));
-    }
-    return () => { };
-  }, [successPay, dispatch, history, orderId]);
-
-  const handleSuccessPayment = (paymentResult) => {
-    dispatch(payOrder(order, paymentResult));
-  }
-
-  const orderDetails = useSelector(state => state.orderDetails);
-  const { loading, order, error } = orderDetails;
-
-  return loading ? <div>Loading ...</div> : error ? <div>{error}</div> :
-    <div>
-      <div className="placeorder">
-        <div className="placeorder-info">
-          <div>
-            <h3>Shipping</h3>
-            <div>
-              {order.shipping.address}, {order.shipping.city},
-              {order.shipping.postalCode}, {order.shipping.country},
-            </div>
-            <div>
-              {order.isDelivered ? "Delivered at " + order.deliveredAt : "Not Delivered."}
-            </div>
+  const openMenu = () => {
+    document.querySelector('.sidebar').classList.add('open');
+  };
+  const closeMenu = () => {
+    document.querySelector('.sidebar').classList.remove('open');
+  };
+  return (
+    <BrowserRouter>
+      <div className="grid-container">
+        <header className="header">
+          <div className="brand">
+            <button onClick={openMenu}>&#9776;</button>
+            <Link to="/">amazona</Link>
           </div>
-          <div>
-            <h3>Payment</h3>
-            <div>
-              Payment Method: {order.payment.paymentMethod}
-            </div>
-            <div>
-              {order.isPaid ? "Paid at " + order.paidAt : "Not Paid."}
-            </div>
+          <div className="header-links">
+            <a href="cart.html">Cart</a>
+            {userInfo ? (
+              <Link to="/profile">{userInfo.name}</Link>
+            ) : (
+              <Link to="/signin">Sign In</Link>
+            )}
+            {userInfo && userInfo.isAdmin && (
+              <div className="dropdown">
+                <a href="#">Admin</a>
+                <ul className="dropdown-content">
+                  <li>
+                    <Link to="/orders">Orders</Link>
+                    <Link to="/products">Products</Link>
+                  </li>
+                </ul>
+              </div>
+            )}
           </div>
-          <div>
-            <ul className="cart-list-container">
-              <li>
-                <h3>Shopping Cart</h3>
-                <div>Price</div>
-              </li>
-              {
-                order.orderItems.length === 0 ?
-                  <div>Cart is empty</div>
-                  :
-                  order.orderItems.map(item =>
-                    <li key={item._id}>
-                      <div className="cart-image">
-                        <img src={item.image} alt="product" />
-                      </div>
-                      <div className="cart-name">
-                        <div>
-                          <Link to={"/product/" + item.product}>
-                            {item.name}
-                          </Link>
-                        </div>
-                        <div>
-                          Qty: {item.qty}
-                        </div>
-                      </div>
-                      <div className="cart-price">
-                        ${item.price}
-                      </div>
-                    </li>
-                  )
-              }
-            </ul>
-          </div>
-        </div>
+        </header>
+        <aside className="sidebar">
+          <h3>Shopping Categories</h3>
+          <button className="sidebar-close-button" onClick={closeMenu}>
+            x
+          </button>
+          <ul className="categories">
+            <li>
+              <Link to="/category/Pants">Pants</Link>
+            </li>
 
-        <div className="placeorder-action">
-          <ul>
-            <li className="placeorder-actions-payment">
-              {loadingPay && <div>Finishing Payment...</div>}
-              {!order.isPaid &&
-                <PaypalButton
-                  amount={order.totalPrice}
-                  onSuccess={handleSuccessPayment} />
-              }
-            </li>
             <li>
-              <h3>Order Summary</h3>
-            </li>
-            <li>
-              <div>Items</div>
-              <div>${order.itemsPrice}</div>
-            </li>
-            <li>
-              <div>Shipping</div>
-              <div>${order.shippingPrice}</div>
-            </li>
-            <li>
-              <div>Tax</div>
-              <div>${order.taxPrice}</div>
-            </li>
-            <li>
-              <div>Order Total</div>
-              <div>${order.totalPrice}</div>
+              <Link to="/category/Shirts">Shirts</Link>
             </li>
           </ul>
-        </div>
+        </aside>
+        <main className="main">
+          <div className="content">
+            <Route path="/orders" component={OrdersScreen} />
+            <Route path="/profile" component={ProfileScreen} />
+            <Route path="/order/:id" component={OrderScreen} />
+            <Route path="/products" component={ProductsScreen} />
+            <Route path="/shipping" component={ShippingScreen} />
+            <Route path="/payment" component={PaymentScreen} />
+            <Route path="/placeorder" component={PlaceOrderScreen} />
+            <Route path="/signin" component={SigninScreen} />
+            <Route path="/register" component={RegisterScreen} />
+            <Route path="/product/:id" component={ProductScreen} />
+            <Route path="/cart/:id?" component={CartScreen} />
+            <Route path="/category/:id" component={HomeScreen} />
+            <Route path="/" exact={true} component={HomeScreen} />
+          </div>
+        </main>
+        <footer className="footer">All right reserved.</footer>
       </div>
-    </div>
+    </BrowserRouter>
+  );
 }
 
-export default OrderScreen;
+export default App;
