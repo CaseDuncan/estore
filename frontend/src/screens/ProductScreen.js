@@ -16,6 +16,7 @@ function ProductScreen(props) {
   const productReviewSave = useSelector((state) => state.productReviewSave);
   const { success: productSaveSuccess } = productReviewSave;
   const dispatch = useDispatch();
+  const productId = props.match.params.id;
 
   useEffect(() => {
     if (productSaveSuccess) {
@@ -24,24 +25,22 @@ function ProductScreen(props) {
       setComment('');
       dispatch({ type: PRODUCT_REVIEW_SAVE_RESET });
     }
-    dispatch(detailsProduct(props.match.params.id));
-    return () => {
-      //
-    };
-  }, [productSaveSuccess]);
+    dispatch(detailsProduct(productId));
+  }, [dispatch, productId, productSaveSuccess]); // Fixed: Added missing dependencies
+
   const submitHandler = (e) => {
     e.preventDefault();
-    // dispatch actions
     dispatch(
-      saveProductReview(props.match.params.id, {
+      saveProductReview(productId, {
         name: userInfo.name,
         rating: rating,
         comment: comment,
       })
     );
   };
+
   const handleAddToCart = () => {
-    props.history.push('/cart/' + props.match.params.id + '?qty=' + qty);
+    props.history.push('/cart/' + productId + '?qty=' + qty);
   };
 
   return (
@@ -52,12 +51,12 @@ function ProductScreen(props) {
       {loading ? (
         <div>Loading...</div>
       ) : error ? (
-        <div>{error} </div>
+        <div>{error}</div>
       ) : (
         <>
           <div className="details">
             <div className="details-image">
-              <img src={product.image} alt="product"></img>
+              <img src={product.image} alt={product.name} />
             </div>
             <div className="details-info">
               <ul>
@@ -83,7 +82,7 @@ function ProductScreen(props) {
             </div>
             <div className="details-action">
               <ul>
-                <li>Price: {product.price}</li>
+                <li>Price: ${product.price}</li>
                 <li>
                   Status:{' '}
                   {product.countInStock > 0 ? 'In Stock' : 'Unavailable.'}
@@ -118,15 +117,15 @@ function ProductScreen(props) {
           </div>
           <div className="content-margined">
             <h2>Reviews</h2>
-            {!product.reviews.length && <div>There is no review</div>}
+            {(!product.reviews || product.reviews.length === 0) && <div>There is no review</div>}
             <ul className="review" id="reviews">
-              {product.reviews.map((review) => (
+              {product.reviews && product.reviews.map((review) => (
                 <li key={review._id}>
                   <div>{review.name}</div>
                   <div>
-                    <Rating value={review.rating}></Rating>
+                    <Rating value={review.rating} />
                   </div>
-                  <div>{review.createdAt.substring(0, 10)}</div>
+                  <div>{review.createdAt && review.createdAt.substring(0, 10)}</div>
                   <div>{review.comment}</div>
                 </li>
               ))}
@@ -147,7 +146,7 @@ function ProductScreen(props) {
                           <option value="2">2- Fair</option>
                           <option value="3">3- Good</option>
                           <option value="4">4- Very Good</option>
-                          <option value="5">5- Excelent</option>
+                          <option value="5">5- Excellent</option>
                         </select>
                       </li>
                       <li>
@@ -156,7 +155,7 @@ function ProductScreen(props) {
                           name="comment"
                           value={comment}
                           onChange={(e) => setComment(e.target.value)}
-                        ></textarea>
+                        />
                       </li>
                       <li>
                         <button type="submit" className="button primary">
@@ -178,4 +177,5 @@ function ProductScreen(props) {
     </div>
   );
 }
+
 export default ProductScreen;

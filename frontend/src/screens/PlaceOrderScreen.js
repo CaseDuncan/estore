@@ -11,14 +11,18 @@ function PlaceOrderScreen({ history }) {
 
   const { cartItems, shipping, payment } = cart;
 
-  // Move redirect logic to useEffect
+  // Extract values to variables for static checking
+  const shippingAddress = shipping?.address;
+  const paymentMethod = payment?.paymentMethod;
+
+  // Move redirect logic to useEffect with proper dependencies
   useEffect(() => {
-    if (!shipping?.address) {
+    if (!shippingAddress) {
       history.push("/shipping");
-    } else if (!payment?.paymentMethod) {
+    } else if (!paymentMethod) {
       history.push("/payment");
     }
-  }, [shipping?.address, payment?.paymentMethod, history]);
+  }, [shippingAddress, paymentMethod, history]);
 
   // Memoize price calculations for performance
   const { itemsPrice, shippingPrice, taxPrice, totalPrice } = useMemo(() => {
@@ -43,7 +47,7 @@ function PlaceOrderScreen({ history }) {
       alert("Your cart is empty");
       return;
     }
-    if (!shipping?.address || !payment?.paymentMethod) {
+    if (!shippingAddress || !paymentMethod) {
       alert("Please complete shipping and payment information");
       return;
     }

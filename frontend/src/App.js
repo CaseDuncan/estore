@@ -1,94 +1,95 @@
-import React from 'react';
-import { BrowserRouter, Route, Link } from 'react-router-dom';
-import './App.css';
-import HomeScreen from './screens/HomeScreen';
-import ProductScreen from './screens/ProductScreen';
-import CartScreen from './screens/CartScreen';
-import SigninScreen from './screens/SigninScreen';
-import { useSelector } from 'react-redux';
-import RegisterScreen from './screens/RegisterScreen';
-import ProductsScreen from './screens/ProductsScreen';
-import ShippingScreen from './screens/ShippingScreen';
-import PaymentScreen from './screens/PaymentScreen';
-import PlaceOrderScreen from './screens/PlaceOrderScreen';
-import OrderScreen from './screens/OrderScreen';
-import ProfileScreen from './screens/ProfileScreen';
-import OrdersScreen from './screens/OrdersScreen';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { listProducts } from '../actions/productActions';
+import Rating from '../components/Rating';
 
-function App() {
-  const userSignin = useSelector((state) => state.userSignin);
-  const { userInfo } = userSignin;
+function HomeScreen(props) {
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [sortOrder, setSortOrder] = useState('');
+  const category = props.match.params.id ? props.match.params.id : '';
+  const productList = useSelector((state) => state.productList);
+  const { products, loading, error } = productList;
+  const dispatch = useDispatch();
 
-  const openMenu = () => {
-    document.querySelector('.sidebar').classList.add('open');
+  useEffect(() => {
+    dispatch(listProducts(category, searchKeyword, sortOrder));
+  }, [dispatch, category, searchKeyword, sortOrder]); // Added proper dependencies
+
+  const submitHandler = (e) => {
+    e.preventDefault();
+    dispatch(listProducts(category, searchKeyword, sortOrder));
   };
-  const closeMenu = () => {
-    document.querySelector('.sidebar').classList.remove('open');
+
+  const sortHandler = (e) => {
+    const newSortOrder = e.target.value;
+    setSortOrder(newSortOrder);
+    dispatch(listProducts(category, searchKeyword, newSortOrder));
   };
+
   return (
-    <BrowserRouter>
-      <div className="grid-container">
-        <header className="header">
-          <div className="brand">
-            <button onClick={openMenu}>&#9776;</button>
-            <Link to="/">amazona</Link>
-          </div>
-          <div className="header-links">
-            <a href="cart.html">Cart</a>
-            {userInfo ? (
-              <Link to="/profile">{userInfo.name}</Link>
-            ) : (
-              <Link to="/signin">Sign In</Link>
-            )}
-            {userInfo && userInfo.isAdmin && (
-              <div className="dropdown">
-                <a href="#">Admin</a>
-                <ul className="dropdown-content">
-                  <li>
-                    <Link to="/orders">Orders</Link>
-                    <Link to="/products">Products</Link>
-                  </li>
-                </ul>
-              </div>
-            )}
-          </div>
-        </header>
-        <aside className="sidebar">
-          <h3>Shopping Categories</h3>
-          <button className="sidebar-close-button" onClick={closeMenu}>
-            x
-          </button>
-          <ul className="categories">
-            <li>
-              <Link to="/category/Pants">Pants</Link>
-            </li>
+    <>
+      {category && <h2>{category}</h2>}
 
-            <li>
-              <Link to="/category/Shirts">Shirts</Link>
-            </li>
-          </ul>
-        </aside>
-        <main className="main">
-          <div className="content">
-            <Route path="/orders" component={OrdersScreen} />
-            <Route path="/profile" component={ProfileScreen} />
-            <Route path="/order/:id" component={OrderScreen} />
-            <Route path="/products" component={ProductsScreen} />
-            <Route path="/shipping" component={ShippingScreen} />
-            <Route path="/payment" component={PaymentScreen} />
-            <Route path="/placeorder" component={PlaceOrderScreen} />
-            <Route path="/signin" component={SigninScreen} />
-            <Route path="/register" component={RegisterScreen} />
-            <Route path="/product/:id" component={ProductScreen} />
-            <Route path="/cart/:id?" component={CartScreen} />
-            <Route path="/category/:id" component={HomeScreen} />
-            <Route path="/" exact={true} component={HomeScreen} />
-          </div>
-        </main>
-        <footer className="footer">All right reserved.</footer>
-      </div>
-    </BrowserRouter>
+      <ul className="filter">
+        <li>
+          <form onSubmit={submitHandler}>
+            <input
+              name="searchKeyword"
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              placeholder="Search products..."
+            />
+            <button type="submit">Search</button>
+          </form>
+        </li>
+        <li>
+          Sort By{' '}
+          <select name="sortOrder" onChange={sortHandler} value={sortOrder}>
+            <option value="">Newest</option>
+            <option value="lowest">Lowest</option>
+            <option value="highest">Highest</option>
+          </select>
+        </li>
+      </ul>
+
+      {loading ? (
+        <div>Loading...</div>
+      ) : error ? (
+        <div style={{ color: 'red' }}>{error}</div>
+      ) : (
+        <ul className="products">
+          {products && products.length === 0 ? (
+            <div>No products found</div>
+          ) : (
+            products.map((product) => (
+              <li key={product._id}>
+                <div className="product">
+                  <Link to={'/product/' + product._id}>
+                    <img
+                      className="product-image"
+                      src={product.image}
+                      alt={product.name}
+                    />
+                  </Link>
+                  <div className="product-name">
+                    <Link to={'/product/' + product._id}>{product.name}</Link>
+                  </div>
+                  <div className="product-brand">{product.brand}</div>
+                  <div className="product-price">${product.price}</div>
+                  <div className="product-rating">
+                    <Rating
+                      value={product.rating}
+                      text={product.numReviews + ' reviews'}
+                    />
+                  </div>
+                </div>
+              </li>
+            ))
+          )}
+        </ul>
+      )}
+    </>
   );
 }
 
-export default App;
+export default HomeScreen;
