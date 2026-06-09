@@ -30,13 +30,13 @@ function App() {
       <div className="grid-container">
         <header className="header">
           <div className="brand">
-            <button onClick={openMenu}>
+            <button onClick={openMenu} aria-label="Menu">
               &#9776;
             </button>
-            <Link to="/">amazona</Link>
+            <Link to="/">estore</Link>
           </div>
           <div className="header-links">
-            <a href="/cart">Cart</a>
+            <Link to="/cart">Cart</Link>
             {userInfo ? (
               <Link to="/profile">{userInfo.name}</Link>
             ) : (
@@ -44,10 +44,14 @@ function App() {
             )}
             {userInfo && userInfo.isAdmin && (
               <div className="dropdown">
-                <a href="#">Admin</a>
+                <button className="dropdown-button" aria-label="Admin Menu">
+                  Admin
+                </button>
                 <ul className="dropdown-content">
                   <li>
                     <Link to="/orders">Orders</Link>
+                  </li>
+                  <li>
                     <Link to="/products">Products</Link>
                   </li>
                 </ul>
@@ -55,19 +59,34 @@ function App() {
             )}
           </div>
         </header>
+
         <aside className="sidebar">
+          <button className="sidebar-close-button" onClick={closeMenu} aria-label="Close menu">
+            x
+          </button>
           <h3>Shopping Categories</h3>
-          <button className="sidebar-close-button" onClick={closeMenu}>x</button>
           <ul>
             <li>
-              <a href="javascript:void(0)">Pants</a>
+              <button
+                className="category-button"
+                onClick={() => {/* Handle pants category */ }}
+                aria-label="Pants category"
+              >
+                Pants
+              </button>
             </li>
-
             <li>
-              <a href="javascript:void(0)">Shirts</a>
+              <button
+                className="category-button"
+                onClick={() => {/* Handle shirts category */ }}
+                aria-label="Shirts category"
+              >
+                Shirts
+              </button>
             </li>
           </ul>
         </aside>
+
         <main className="main">
           <div className="content">
             <Route path="/orders" component={OrdersScreen} />
@@ -84,6 +103,7 @@ function App() {
             <Route path="/" exact={true} component={HomeScreen} />
           </div>
         </main>
+
         <footer className="footer">
           All right reserved.
         </footer>

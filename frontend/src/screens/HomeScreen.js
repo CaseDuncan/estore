@@ -11,21 +11,20 @@ function HomeScreen(props) {
   const productList = useSelector((state) => state.productList);
   const { products, loading, error } = productList;
   const dispatch = useDispatch();
-  useEffect(() => {
-    dispatch(listProducts(category));
 
-    return () => {
-      //
-    };
-  }, [category]);
+  useEffect(() => {
+    dispatch(listProducts(category, searchKeyword, sortOrder));
+  }, [dispatch, category, searchKeyword, sortOrder]); // Fixed: Added missing dependencies
 
   const submitHandler = (e) => {
     e.preventDefault();
     dispatch(listProducts(category, searchKeyword, sortOrder));
   };
+
   const sortHandler = (e) => {
-    setSortOrder(e.target.value);
-    dispatch(listProducts(category, searchKeyword, sortOrder));
+    const newSortOrder = e.target.value;
+    setSortOrder(newSortOrder);
+    dispatch(listProducts(category, searchKeyword, newSortOrder));
   };
 
   return (
@@ -38,52 +37,60 @@ function HomeScreen(props) {
             <input
               name="searchKeyword"
               onChange={(e) => setSearchKeyword(e.target.value)}
+              placeholder="Search products..."
+              value={searchKeyword}
             />
             <button type="submit">Search</button>
           </form>
         </li>
         <li>
           Sort By{' '}
-          <select name="sortOrder" onChange={sortHandler}>
+          <select name="sortOrder" onChange={sortHandler} value={sortOrder}>
             <option value="">Newest</option>
             <option value="lowest">Lowest</option>
             <option value="highest">Highest</option>
           </select>
         </li>
       </ul>
+
       {loading ? (
         <div>Loading...</div>
       ) : error ? (
-        <div>{error}</div>
+        <div style={{ color: 'red' }}>{error}</div>
       ) : (
         <ul className="products">
-          {products.map((product) => (
-            <li key={product._id}>
-              <div className="product">
-                <Link to={'/product/' + product._id}>
-                  <img
-                    className="product-image"
-                    src={product.image}
-                    alt="product"
-                  />
-                </Link>
-                <div className="product-name">
-                  <Link to={'/product/' + product._id}>{product.name}</Link>
+          {products && products.length === 0 ? (
+            <div>No products found</div>
+          ) : (
+            products.map((product) => (
+              <li key={product._id}>
+                <div className="product">
+                  <Link to={'/product/' + product._id}>
+                    <img
+                      className="product-image"
+                      src={product.image}
+                      alt={product.name}
+                    />
+                  </Link>
+                  <div className="product-name">
+                    <Link to={'/product/' + product._id}>{product.name}</Link>
+                  </div>
+                  <div className="product-brand">{product.brand}</div>
+                  <div className="product-price">${product.price}</div>
+                  <div className="product-rating">
+                    <Rating
+                      value={product.rating}
+                      text={product.numReviews + ' reviews'}
+                    />
+                  </div>
                 </div>
-                <div className="product-brand">{product.brand}</div>
-                <div className="product-price">${product.price}</div>
-                <div className="product-rating">
-                  <Rating
-                    value={product.rating}
-                    text={product.numReviews + ' reviews'}
-                  />
-                </div>
-              </div>
-            </li>
-          ))}
+              </li>
+            ))
+          )}
         </ul>
       )}
     </>
   );
 }
+
 export default HomeScreen;
