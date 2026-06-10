@@ -14,7 +14,7 @@ function HomeScreen(props) {
 
   useEffect(() => {
     dispatch(listProducts(category, searchKeyword, sortOrder));
-  }, [dispatch, category, searchKeyword, sortOrder]); // Fixed: Added missing dependencies
+  }, [dispatch, category, searchKeyword, sortOrder]);
 
   const submitHandler = (e) => {
     e.preventDefault();
@@ -59,10 +59,10 @@ function HomeScreen(props) {
         <div style={{ color: 'red' }}>{error}</div>
       ) : (
         <ul className="products">
-          {products && products.length === 0 ? (
+          {products && Array.isArray(products) && products.length === 0 ? (
             <div>No products found</div>
           ) : (
-            products.map((product) => (
+            products && Array.isArray(products) && products.map((product) => (
               <li key={product._id}>
                 <div className="product">
                   <Link to={'/product/' + product._id}>
